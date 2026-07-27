@@ -215,10 +215,7 @@ mod mock_oracle_contract {
 
         /// Batch push prices (anyone can call).
         #[ink(message)]
-        pub fn set_prices(
-            &mut self,
-            prices: Vec<(u64, u128)>,
-        ) -> Result<(), OracleError> {
+        pub fn set_prices(&mut self, prices: Vec<(u64, u128)>) -> Result<(), OracleError> {
             for (property_id, price) in &prices {
                 if *price == 0 {
                     return Err(OracleError::InvalidValuation);
@@ -387,11 +384,7 @@ mod mock_oracle_contract {
         }
 
         #[ink(message)]
-        fn get_oracle_snapshots(
-            &self,
-            property_id: u64,
-            limit: u32,
-        ) -> Vec<OracleDataSnapshot> {
+        fn get_oracle_snapshots(&self, property_id: u64, limit: u32) -> Vec<OracleDataSnapshot> {
             if limit == 0 {
                 return Vec::new();
             }
@@ -416,11 +409,7 @@ mod mock_oracle_contract {
         }
 
         #[ink(message)]
-        fn get_source_history(
-            &self,
-            _source_id: String,
-            limit: u32,
-        ) -> Vec<SourceHistoryEntry> {
+        fn get_source_history(&self, _source_id: String, limit: u32) -> Vec<SourceHistoryEntry> {
             // Mock: return empty, or a single entry if any price was ever pushed.
             let _ = limit;
             Vec::new()
@@ -567,10 +556,7 @@ mod mock_oracle_contract {
         #[ink::test]
         fn set_price_rejects_zero() {
             let mut oracle = setup();
-            assert_eq!(
-                oracle.set_price(1, 0),
-                Err(OracleError::InvalidValuation)
-            );
+            assert_eq!(oracle.set_price(1, 0), Err(OracleError::InvalidValuation));
         }
 
         #[ink::test]
@@ -604,10 +590,7 @@ mod mock_oracle_contract {
             #[cfg(feature = "mock")]
             assert_eq!(oracle.get_valuation(1).unwrap().valuation, 501_000);
             #[cfg(not(feature = "mock"))]
-            assert_eq!(
-                oracle.get_valuation(1),
-                Err(OracleError::PropertyNotFound)
-            );
+            assert_eq!(oracle.get_valuation(1), Err(OracleError::PropertyNotFound));
         }
 
         #[ink::test]
@@ -635,9 +618,7 @@ mod mock_oracle_contract {
         #[ink::test]
         fn batch_request_valuations() {
             let mut oracle = setup();
-            let ids = oracle
-                .batch_request_valuations(vec![10, 20, 30])
-                .unwrap();
+            let ids = oracle.batch_request_valuations(vec![10, 20, 30]).unwrap();
             assert_eq!(ids.len(), 3);
             assert_eq!(ids[0], 1);
             assert_eq!(ids[1], 2);
@@ -657,10 +638,7 @@ mod mock_oracle_contract {
         fn get_market_volatility() {
             let oracle = setup();
             let mv = oracle
-                .get_market_volatility(
-                    PropertyType::Residential,
-                    "TestLocation".to_string(),
-                )
+                .get_market_volatility(PropertyType::Residential, "TestLocation".to_string())
                 .unwrap();
             assert_eq!(mv.volatility_index, 0);
         }
@@ -687,17 +665,15 @@ mod mock_oracle_contract {
             };
             assert!(OracleRegistry::add_source(&mut oracle, source).is_ok());
             assert!(OracleRegistry::remove_source(&mut oracle, "test-source".to_string()).is_ok());
-            assert!(OracleRegistry::update_reputation(&mut oracle, "src".to_string(), true).is_ok());
+            assert!(
+                OracleRegistry::update_reputation(&mut oracle, "src".to_string(), true).is_ok()
+            );
             assert_eq!(
                 OracleRegistry::get_reputation(&oracle, "src".to_string()),
                 Some(1000)
             );
-            assert!(
-                OracleRegistry::slash_source(&mut oracle, "src".to_string(), 0).is_ok()
-            );
-            assert!(
-                !OracleRegistry::detect_anomalies(&oracle, 1, 1_000_000)
-            );
+            assert!(OracleRegistry::slash_source(&mut oracle, "src".to_string(), 0).is_ok());
+            assert!(!OracleRegistry::detect_anomalies(&oracle, 1, 1_000_000));
         }
 
         #[ink::test]
